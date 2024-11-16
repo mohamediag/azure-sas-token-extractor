@@ -12,7 +12,7 @@ type SecretManagerOptions struct {
 	PrometheusEnabled bool
 }
 type SecretManager struct {
-	k8sClient *Client
+	K8sClient ClientI
 }
 
 type AzureAksSecret struct {
@@ -25,10 +25,10 @@ type AzureAksSecret struct {
 }
 
 func NewSecretManager() *SecretManager {
-	k8sClient := NewK8sClient()
+	var k8sClient ClientI = NewK8sClient()
 
 	return &SecretManager{
-		k8sClient: k8sClient,
+		K8sClient: k8sClient,
 	}
 }
 
@@ -38,7 +38,7 @@ var exludedNamespaces = map[string]bool{
 
 func (s SecretManager) RetrieveAzureAksSecret() ([]AzureAksSecret, error) {
 
-	namespcesList, err := s.k8sClient.GetNamespaces()
+	namespcesList, err := s.K8sClient.GetNamespaces()
 
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func (s SecretManager) RetrieveAzureAksSecret() ([]AzureAksSecret, error) {
 			continue
 		}
 		log.Infof("Extracting secrets from namespace %s", namespace.Name)
-		secrets, err := s.k8sClient.GetSecrets(namespace.Name)
+		secrets, err := s.K8sClient.GetSecrets(namespace.Name)
 		if err != nil {
 			return nil, err
 		}

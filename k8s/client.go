@@ -13,6 +13,10 @@ import (
 type Client struct {
 	clientSet *kubernetes.Clientset
 }
+type ClientI interface {
+	GetSecrets(namespace string) (*podv1.SecretList, error)
+	GetNamespaces() (*podv1.NamespaceList, error)
+}
 
 func NewK8sClient() *Client {
 	var config *rest.Config
