@@ -59,7 +59,7 @@ func (s SecretManager) RetrieveAzureAksSecret() ([]AzureAksSecret, error) {
 		}
 		log.Infof("Namespace %s has %d secrets", namespace.Name, len(secrets.Items))
 		for _, secret := range secrets.Items {
-			azureAksSecret, err := tryToExtractAzureAksSasTokenFromK8sSecret(secret, namespace.Name)
+			azureAksSecret, err := TryToExtractAzureAksSasTokenFromK8sSecret(secret, namespace.Name)
 			if err != nil {
 				log.Errorf("Error while extracting Azure AKS secret from k8s secret %s - %s", secret.Name, err)
 				continue
@@ -71,17 +71,17 @@ func (s SecretManager) RetrieveAzureAksSecret() ([]AzureAksSecret, error) {
 	return azureAksSecretsList, err
 }
 
-func tryToExtractAzureAksSasTokenFromK8sSecret(secret v1.Secret, namespace string) ([]AzureAksSecret, error) {
+func TryToExtractAzureAksSasTokenFromK8sSecret(secret v1.Secret, namespace string) ([]AzureAksSecret, error) {
 	log.Infof("Analysing secrets %s from namespace %s", secret.Name, namespace)
 	var azureAksSecrets []AzureAksSecret
 	for key, value := range secret.Data {
-		if !isSasToken(string(value)) {
+		if !IsSasToken(string(value)) {
 			continue
 		}
 		log.Infof("key : %s", key)
 		//log.Infof("value : %s", value)
 
-		expirationDate, err := extractExpirationDate(string(value))
+		expirationDate, err := ExtractExpirationDate(string(value))
 		if err != nil {
 			log.Errorf("Error while extracting expiration date from secret %s with key %s", secret.Name, key)
 			continue
@@ -100,12 +100,21 @@ func tryToExtractAzureAksSasTokenFromK8sSecret(secret v1.Secret, namespace strin
 	return azureAksSecrets, nil
 }
 
-func extractExpirationDate(token string) (time.Time, error) {
-	tokenSplit := strings.SplitAfter(token, "se=")[1]
+func ExtractExpirationDate(token string) (time.Time, error) {
+	parts := strings.SplitAfter(token, "se=")
+	if len(parts) < 2 {
+		return time.Time{}, fmt.Errorf("invalid SAS token format: missing 'se=' parameter")
+	}
+	
+	tokenSplit := parts[1]
+	if len(tokenSplit) < 10 {
+		return time.Time{}, fmt.Errorf("invalid SAS token format: date part too short")
+	}
+	
 	return time.Parse("2006-01-02", tokenSplit[0:10])
 }
 
-func isSasToken(token string) bool {
+func IsSasToken(token string) bool {
 	return len(token) > 120 && strings.Contains(token, "se=")
 }
 
