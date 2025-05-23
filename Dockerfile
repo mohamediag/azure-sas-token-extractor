@@ -14,13 +14,11 @@ COPY . .
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -o azure-sas-token-extractor
 
-# Use a smaller base image for the final image
-FROM alpine:latest
+# Use distroless as minimal base image to package the application
+# https://github.com/GoogleContainerTools/distroless
+FROM gcr.io/distroless/static-debian12:nonroot
 
-# Install CA certificates for making secure connections
-RUN apk --no-cache add ca-certificates
-
-WORKDIR /root/
+WORKDIR /app
 
 # Copy the binary from the builder stage
 COPY --from=builder /app/azure-sas-token-extractor .
