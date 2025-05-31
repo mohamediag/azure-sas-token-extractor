@@ -32,13 +32,13 @@ func NewSecretManager() *SecretManager {
 	}
 }
 
-var exludedNamespaces = map[string]bool{
+var excludedNamespaces = map[string]bool{
 	"kube-system": true,
 }
 
 func (s SecretManager) RetrieveAzureAksSecret() ([]AzureAksSecret, error) {
 
-	namespcesList, err := s.K8sClient.GetNamespaces()
+	namespacesList, err := s.K8sClient.GetNamespaces()
 
 	if err != nil {
 		return nil, err
@@ -46,9 +46,9 @@ func (s SecretManager) RetrieveAzureAksSecret() ([]AzureAksSecret, error) {
 
 	var azureAksSecretsList []AzureAksSecret
 
-	for _, namespace := range namespcesList.Items {
+	for _, namespace := range namespacesList.Items {
 
-		if _, ok := exludedNamespaces[namespace.Name]; ok {
+		if _, ok := excludedNamespaces[namespace.Name]; ok {
 			log.Debugf("Skipping namespace %s", namespace.Name)
 			continue
 		}
@@ -92,7 +92,7 @@ func tryToExtractAzureAksSasTokenFromK8sSecret(secret v1.Secret, namespace strin
 			SecretKey:      key,
 			SecretValue:    string(value),
 			ExpirationDate: expirationDate,
-			RemainingDays:  int(expirationDate.Sub(time.Now()).Hours() / 24),
+			RemainingDays:  int(time.Until(expirationDate).Hours() / 24),
 		}
 		azureAksSecrets = append(azureAksSecrets, azureAksSecret)
 
