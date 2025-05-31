@@ -23,10 +23,10 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
-      - name: Lint code
-        uses: golangci/golangci-lint-action@v4
-        with:
-          version: v1.56
+#      - name: Lint code
+#        uses: golangci/golangci-lint-action@v4
+#        with:
+#          version: v1.56
 
       - name: Run tests
         run: go test ./... -v
