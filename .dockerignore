@@ -1,0 +1,24 @@
+# Git files
+.git
+.gitignore
+.github
+
+# Docker files
+.dockerignore
+Dockerfile
+
+# Build files
+azure-sas-token-extractor
+
+# Editor files
+*.swp
+*.swo
+*~
+
+# IDE files
+.idea/
+.vscode/
+
+# Misc
+README.md
+LICENSE
