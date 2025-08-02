@@ -15,7 +15,7 @@ Azure SAS Token Extractor helps Kubernetes cluster administrators and developers
 ## Installation
 
 ### Prerequisites
-- Go 1.22 or later
+- Go 1.22.0 or later
 - Access to a Kubernetes cluster
 - Proper Kubernetes RBAC permissions to read secrets across namespaces
 
@@ -82,9 +82,11 @@ The command output displays a table with the following columns:
 Azure SAS Token Extractor identifies SAS tokens in Kubernetes secrets by:
 1. Looking for strings longer than 120 characters
 2. Checking if the string contains the pattern "se=" (which is used in SAS tokens to indicate the expiration time)
-3. Extracting the expiration date from the "se=" parameter
+3. Extracting the expiration date from the "se=" parameter using multiple date format parsers
 
 The tool calculates the number of days remaining until expiration and categorizes the token status accordingly.
+
+**Security Note**: For security purposes, actual secret values are masked in the output to prevent accidental exposure of sensitive data.
 
 ## Troubleshooting
 
@@ -98,10 +100,13 @@ The tool calculates the number of days remaining until expiration and categorize
 
 - **No Tokens Found**: If no tokens are found, verify that your secrets actually contain Azure SAS tokens with the expected format.
 
-- **Connection Issues**: Ensure your KUBECONFIG is correctly set and you can connect to the cluster.
+- **Connection Issues**: Ensure your KUBECONFIG is correctly set and you can connect to the cluster. The tool will first try to use the `KUBECONFIG_PATH` environment variable, then fall back to in-cluster configuration.
   ```bash
   # Test your connection
   kubectl get nodes
+  
+  # Set KUBECONFIG_PATH if needed
+  export KUBECONFIG_PATH=~/.kube/config
   ```
 
 ## Contributing
