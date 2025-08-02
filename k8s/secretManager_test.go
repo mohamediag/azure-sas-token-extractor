@@ -56,25 +56,25 @@ var _ = Describe("SecretManager", func() {
 				//THEN
 				Expect(errs).ToNot(HaveOccurred())
 				Expect(azureAksSecrets).To(HaveLen(4))
-				
+
 				// Validate the first secret from namespace-1
 				Expect(azureAksSecrets[0].Namespace).To(Equal("namespace-1"))
 				Expect(azureAksSecrets[0].SecretName).To(Equal("my-secret"))
 				Expect(azureAksSecrets[0].SecretKey).To(Equal("MY_AZURE_SAS_TOKEN"))
 				Expect(azureAksSecrets[0].ExpirationDate.Format("2006-01-02")).To(Equal("2024-11-16"))
-				
+
 				// Validate the second secret from namespace-1
 				Expect(azureAksSecrets[1].Namespace).To(Equal("namespace-1"))
 				Expect(azureAksSecrets[1].SecretName).To(Equal("my-secret"))
 				Expect(azureAksSecrets[1].SecretKey).To(Equal("MY_AZURE_SAS_TOKEN2"))
 				Expect(azureAksSecrets[1].ExpirationDate.Format("2006-01-02")).To(Equal("2025-03-13"))
-				
+
 				// Validate the first secret from namespace-2
 				Expect(azureAksSecrets[2].Namespace).To(Equal("namespace-2"))
 				Expect(azureAksSecrets[2].SecretName).To(Equal("my-secret"))
 				Expect(azureAksSecrets[2].SecretKey).To(Equal("MY_AZURE_SAS_TOKEN"))
 				Expect(azureAksSecrets[2].ExpirationDate.Format("2006-01-02")).To(Equal("2024-11-16"))
-				
+
 				// Validate the second secret from namespace-2
 				Expect(azureAksSecrets[3].Namespace).To(Equal("namespace-2"))
 				Expect(azureAksSecrets[3].SecretName).To(Equal("my-secret"))

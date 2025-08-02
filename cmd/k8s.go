@@ -27,7 +27,10 @@ func init() {
 }
 
 func runk8sSecretCommand() {
-	secretManager := k8s.NewSecretManager()
+	secretManager, err := k8s.NewSecretManager()
+	if err != nil {
+		logrus.Fatal("Error while creating secret manager: ", err)
+	}
 
 	azureAksSecrets, err := secretManager.RetrieveAzureAksSecret()
 	if err != nil {

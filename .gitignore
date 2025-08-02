@@ -23,3 +23,28 @@ go.work.sum
 
 # env file
 .env
+
+# IDE directories
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Application binary
+azure-sas-token-extractor
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.temp

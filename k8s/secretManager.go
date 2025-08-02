@@ -19,17 +19,20 @@ type AzureAksSecret struct {
 	Namespace      string
 	SecretName     string
 	SecretKey      string
-	SecretValue    string
+	SecretValue    string // masked for security
 	ExpirationDate time.Time
 	RemainingDays  int
 }
 
-func NewSecretManager() *SecretManager {
-	var k8sClient ClientI = NewK8sClient()
+func NewSecretManager() (*SecretManager, error) {
+	k8sClient, err := NewK8sClient()
+	if err != nil {
+		return nil, err
+	}
 
 	return &SecretManager{
 		K8sClient: k8sClient,
-	}
+	}, nil
 }
 
 var excludedNamespaces = map[string]bool{
@@ -68,7 +71,7 @@ func (s SecretManager) RetrieveAzureAksSecret() ([]AzureAksSecret, error) {
 		}
 	}
 	printAllSecretInAWellFormatedTable(azureAksSecretsList)
-	return azureAksSecretsList, err
+	return azureAksSecretsList, nil
 }
 
 func TryToExtractAzureAksSasTokenFromK8sSecret(secret v1.Secret, namespace string) ([]AzureAksSecret, error) {
@@ -90,7 +93,7 @@ func TryToExtractAzureAksSasTokenFromK8sSecret(secret v1.Secret, namespace strin
 			Namespace:      namespace,
 			SecretName:     secret.Name,
 			SecretKey:      key,
-			SecretValue:    string(value),
+			SecretValue:    "***MASKED***",
 			ExpirationDate: expirationDate,
 			RemainingDays:  int(time.Until(expirationDate).Hours() / 24),
 		}
@@ -105,13 +108,23 @@ func ExtractExpirationDate(token string) (time.Time, error) {
 	if len(parts) < 2 {
 		return time.Time{}, fmt.Errorf("invalid SAS token format: missing 'se=' parameter")
 	}
-	
+
 	tokenSplit := parts[1]
 	if len(tokenSplit) < 10 {
 		return time.Time{}, fmt.Errorf("invalid SAS token format: date part too short")
 	}
-	
-	return time.Parse("2006-01-02", tokenSplit[0:10])
+
+	// Try different date formats
+	dateStr := tokenSplit[0:10]
+	formats := []string{"2006-01-02", "2006-01-02T15:04:05Z", "2006-01-02T15:04:05"}
+
+	for _, format := range formats {
+		if t, err := time.Parse(format, dateStr); err == nil {
+			return t, nil
+		}
+	}
+
+	return time.Time{}, fmt.Errorf("invalid SAS token date format: %s", dateStr)
 }
 
 func IsSasToken(token string) bool {
@@ -119,7 +132,6 @@ func IsSasToken(token string) bool {
 }
 
 func printAllSecretInAWellFormatedTable(azureAksSecrets []AzureAksSecret) {
-	time.Sleep(1 * time.Second)
 	log.Infof("Total Azure AKS secrets retrieved : %d", len(azureAksSecrets))
 	fmt.Printf("%-30s %-30s %-30s %-30s %-30s %-30s\n", "Namespace", "Secret Name", "Secret Key",
 		"Expiration Date", "Remaining Days", "Status")
